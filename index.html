@@ -16,39 +16,91 @@
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
     <script>
-      ;(function () {
-        if (
-          !window.chatbase ||
-          window.chatbase('getState') !== 'initialized'
-        ) {
+      (function () {
+        if (!window.chatbase || window.chatbase("getState") !== "initialized") {
           window.chatbase = (...arguments) => {
             if (!window.chatbase.q) {
-              window.chatbase.q = []
+              window.chatbase.q = [];
             }
-            window.chatbase.q.push(arguments)
-          }
+            window.chatbase.q.push(arguments);
+          };
           window.chatbase = new Proxy(window.chatbase, {
             get(target, prop) {
-              if (prop === 'q') {
-                return target.q
+              if (prop === "q") {
+                return target.q;
               }
-              return (...args) => target(prop, ...args)
+              return (...args) => target(prop, ...args);
             },
-          })
+          });
         }
         const onLoad = function () {
-          const script = document.createElement('script')
-          script.src = 'https://www.chatbase.co/embed.min.js'
-          script.id = 'zyCLGIhJzfXtMdH8MQhgW'
-          script.domain = 'www.chatbase.co'
-          document.body.appendChild(script)
-        }
-        if (document.readyState === 'complete') {
-          onLoad()
+          const script = document.createElement("script");
+          script.src = "https://www.chatbase.co/embed.min.js";
+          script.id = "zyCLGIhJzfXtMdH8MQhgW";
+          script.domain = "www.chatbase.co";
+          document.body.appendChild(script);
+        };
+        if (document.readyState === "complete") {
+          onLoad();
         } else {
-          window.addEventListener('load', onLoad)
+          window.addEventListener("load", onLoad);
         }
-      })()
+      })();
+    </script>
+    <script>
+      (function () {
+        const AGENT_ID = "qG4Seps_KUQ05x9eVD7mHnR5PFA";
+        const conversationId = crypto.randomUUID();
+
+        window.addEventListener("message", function (event) {
+          if (!event.origin || event.origin.indexOf("chatbase.co") === -1)
+            return;
+
+          let data = event.data;
+          if (typeof data === "string") {
+            try {
+              data = JSON.parse(data);
+            } catch {
+              return;
+            }
+          }
+          if (!data || typeof data !== "object") return;
+          if (
+            typeof window.pendo === "undefined" ||
+            typeof window.pendo.trackAgent !== "function"
+          )
+            return;
+
+          const message = data.data || data;
+          const role = message.role || data.role || "";
+          const content =
+            message.content ||
+            message.message ||
+            message.text ||
+            data.content ||
+            data.message ||
+            data.text ||
+            "";
+
+          if (!content) return;
+
+          if (role === "user") {
+            window.pendo.trackAgent("prompt", {
+              agentId: AGENT_ID,
+              conversationId: conversationId,
+              messageId: message.id || crypto.randomUUID(),
+              content: content,
+            });
+          } else if (role === "assistant" || role === "bot") {
+            window.pendo.trackAgent("agent_response", {
+              agentId: AGENT_ID,
+              conversationId: conversationId,
+              messageId: message.id || crypto.randomUUID(),
+              content: content,
+            });
+          }
+        });
+      })();
     </script>
   </body>
 </html>
