@@ -4,6 +4,13 @@ import "./index.css";
 import App from "./App.jsx";
 import "./pendo-track-agent.js";
 
+
+pendo.initialize({
+  visitor: {
+    id: "",
+  },
+});
+
 createRoot(document.getElementById("root")).render(
   <StrictMode>
     <App />
