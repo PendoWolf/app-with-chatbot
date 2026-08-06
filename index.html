@@ -11,44 +11,76 @@
       rel="stylesheet"
     />
     <title>Clearlist</title>
+    <script>
+      (function (apiKey) {
+        (function (p, e, n, d, o) {
+          var v, w, x, y, z;
+          o = p[d] = p[d] || {};
+          o._q = o._q || [];
+          v = [
+            "initialize",
+            "identify",
+            "updateOptions",
+            "pageLoad",
+            "track",
+            "trackAgent",
+          ];
+          for (w = 0, x = v.length; w < x; ++w)
+            (function (m) {
+              o[m] =
+                o[m] ||
+                function () {
+                  o._q[m === v[0] ? "unshift" : "push"](
+                    [m].concat([].slice.call(arguments, 0)),
+                  );
+                };
+            })(v[w]);
+          y = e.createElement(n);
+          y.async = !0;
+          y.src =
+            "https://cdn.pendo-dev.pendo-dev.com/agent/static/" +
+            apiKey +
+            "/pendo.js";
+          z = e.getElementsByTagName(n)[0];
+          z.parentNode.insertBefore(y, z);
+        })(window, document, "script", "pendo");
+      })("aa39f153-5926-4df9-9eb2-4f7ea3ba39af");
+    </script>
   </head>
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
     <script>
-      ;(function () {
-        if (
-          !window.chatbase ||
-          window.chatbase('getState') !== 'initialized'
-        ) {
+      (function () {
+        if (!window.chatbase || window.chatbase("getState") !== "initialized") {
           window.chatbase = (...arguments) => {
             if (!window.chatbase.q) {
-              window.chatbase.q = []
+              window.chatbase.q = [];
             }
-            window.chatbase.q.push(arguments)
-          }
+            window.chatbase.q.push(arguments);
+          };
           window.chatbase = new Proxy(window.chatbase, {
             get(target, prop) {
-              if (prop === 'q') {
-                return target.q
+              if (prop === "q") {
+                return target.q;
               }
-              return (...args) => target(prop, ...args)
+              return (...args) => target(prop, ...args);
             },
-          })
+          });
         }
         const onLoad = function () {
-          const script = document.createElement('script')
-          script.src = 'https://www.chatbase.co/embed.min.js'
-          script.id = 'zyCLGIhJzfXtMdH8MQhgW'
-          script.domain = 'www.chatbase.co'
-          document.body.appendChild(script)
-        }
-        if (document.readyState === 'complete') {
-          onLoad()
+          const script = document.createElement("script");
+          script.src = "https://www.chatbase.co/embed.min.js";
+          script.id = "zyCLGIhJzfXtMdH8MQhgW";
+          script.domain = "www.chatbase.co";
+          document.body.appendChild(script);
+        };
+        if (document.readyState === "complete") {
+          onLoad();
         } else {
-          window.addEventListener('load', onLoad)
+          window.addEventListener("load", onLoad);
         }
-      })()
+      })();
     </script>
   </body>
 </html>
