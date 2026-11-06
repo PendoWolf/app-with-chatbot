@@ -1,49 +1,53 @@
-var AGENT_ID = "lcAcwRX_kDrCOjlhDC8iTeK7xwc";
-var conversationId = crypto.randomUUID();
+// Pendo Agent Analytics for the Chatbase widget embedded in index.html.
+// Uses the Chatbase embed event listeners ("user-message",
+// "assistant-message", "tool-call") so each event is tracked exactly once.
+const AGENT_ID = "lxeWFyrjLBeWbiZDi-M989iXVQ8";
+const conversationId = crypto.randomUUID();
 
-window.addEventListener("message", function (event) {
-  if (!event.origin || event.origin.indexOf("chatbase.co") === -1) {
-    return;
-  }
+let pendingTools = [];
 
-  var data = event.data;
-  if (typeof data === "string") {
-    try {
-      data = JSON.parse(data);
-    } catch {
-      return;
-    }
-  }
-  if (!data || typeof data !== "object") return;
+function trackAgent(eventType, metadata) {
   if (
     typeof window.pendo === "undefined" ||
     typeof window.pendo.trackAgent !== "function"
   ) {
     return;
   }
+  window.pendo.trackAgent(eventType, {
+    agentId: AGENT_ID,
+    conversationId,
+    ...metadata,
+  });
+}
 
-  var type = (data.type || "").toLowerCase();
+function getContent(event) {
+  const content = event?.data?.content;
+  return typeof content === "string" ? content : "";
+}
 
-  if (type.indexOf("user") !== -1 || type.indexOf("sent") !== -1) {
-    window.pendo.trackAgent("prompt", {
-      agentId: AGENT_ID,
-      conversationId: conversationId,
-      messageId: data.messageId || crypto.randomUUID(),
-      content: data.message || data.text || data.content || "",
+if (window.chatbase) {
+  window.chatbase.addEventListener("user-message", (event) => {
+    pendingTools = [];
+    trackAgent("prompt", {
+      messageId: crypto.randomUUID(),
+      content: getContent(event),
+      suggestedPrompt: false,
     });
-  }
+  });
 
-  if (
-    type.indexOf("bot") !== -1 ||
-    type.indexOf("received") !== -1 ||
-    type.indexOf("response") !== -1 ||
-    type.indexOf("answer") !== -1
-  ) {
-    window.pendo.trackAgent("agent_response", {
-      agentId: AGENT_ID,
-      conversationId: conversationId,
-      messageId: data.messageId || crypto.randomUUID(),
-      content: data.message || data.text || data.content || "",
+  window.chatbase.addEventListener("tool-call", (event) => {
+    const name = event?.data?.name;
+    if (name && !pendingTools.includes(name)) {
+      pendingTools.push(name);
+    }
+  });
+
+  window.chatbase.addEventListener("assistant-message", (event) => {
+    trackAgent("agent_response", {
+      messageId: crypto.randomUUID(),
+      content: getContent(event),
+      toolsUsed: pendingTools,
     });
-  }
-});
+    pendingTools = [];
+  });
+}
